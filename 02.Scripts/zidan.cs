@@ -3,27 +3,27 @@ using System.Collections;
 
 public class zidan : MonoBehaviour {
 	
-	//public GameObject explosion;
+	public GameObject explosion;
 	void Start () {
 		
 	}
 	
 	// Update is called once per frame
 	void Update () {
-	//	Destroy(gameObject,1.1f);
+		Destroy(gameObject,1.1f);
 		
 	}
 
 	void OnCollisionEnter(Collision other){
-	//	Instantiate (explosion,transform.position,transform.rotation);
-		
+		Instantiate (explosion,transform.position,transform.rotation);
+		//print ("hhhh");
 		Destroy(gameObject);
-		if (other.gameObject.tag == "Enemy") {
-			EnemyControl eec=other.gameObject.GetComponent<EnemyControl>();
-			eec.SetPosition ();
-			print (other);
-			print ("hhhh");
-		}
+//		if (other.gameObject.tag == "Player") {
+//			EnemyControl eec=other.gameObject.GetComponent<EnemyControl>();
+//			eec.SetPosition ();
+	//		print (other);
+
+//		}
 	
 	
 	}

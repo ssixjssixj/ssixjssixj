@@ -2,22 +2,25 @@
 using System.Collections;
 
 public class EnemyControl : MonoBehaviour {
+
 	private NavMeshAgent nvAgent;
 	private Transform tr;
 	private Transform target;
-	
+	private  Transform pos2;//敌人
 	public GameObject[] players;
-	private  GameObject player;//寻找目标
+	private  GameObject player;//寻找目标Others
+	public GameObject qiangkou;
 
 	private PhotonView pv;
-	public float traceTime = 0.5f;//跟踪角色时间
+	private float traceTime = 0.5f;//跟踪角色时间
+	private float gongjishijian=1.0f;//攻击时间
 	private Vector3 currPos;//接收别的窗口怪物信息
 	private Quaternion currRot;//接收别的窗口怪物信息
 	private int i=0;
-
+	private int ii=0;
 	void Start ()
 	{
-
+		pos2=this.transform;//防御塔位置
 		pv = PhotonView.Get(this);
 		pv.observed = this;
 		
@@ -53,7 +56,7 @@ public class EnemyControl : MonoBehaviour {
 			{
 				this.GetComponent<Animation> ().CrossFade ("riflerun");//跑
 				players = GameObject.FindGameObjectsWithTag("Player");
-				
+				if(players==null || target==null){ return;}
 				float dist = (target.position - tr.position).sqrMagnitude;
 				foreach (GameObject _player in players)
 				{
@@ -72,10 +75,11 @@ public class EnemyControl : MonoBehaviour {
 				traceTime = Time.time + 0.4f;
 
 			}
-			if (nvAgent.remainingDistance < 5.0f) {
+			if (nvAgent.remainingDistance < 10.0f && target!=null) {
 				nvAgent.Stop (true);//停止寻路　　
 				this.GetComponent<Animation> ().CrossFade ("rifleidle");//站
-
+				pos2.LookAt (target.position);//转向寻路点
+				kai_qiang();
 			}
 
 		}
@@ -109,16 +113,39 @@ public class EnemyControl : MonoBehaviour {
 		
 		}
 	}
+	void kai_qiang(){
+		gongjishijian -= Time.deltaTime;
+		if (gongjishijian < 0) {
 
-	public void SetPosition(){		//子弹脚本调用这里通知你死亡了
+			StartCoroutine(this.kai_qiang1());
+				pv.RPC("kaiqiangRPC",PhotonTargets.Others);//通知别的窗口开枪
+			gongjishijian = 1.0f;
+		
+	}
+	}
+	IEnumerator kai_qiang1()	//开枪
+	{	
+		qiangkou.GetComponent<qiangkou> ().kaiqiang ();
+
+		yield return null;
+	}
+	[PunRPC]
+	void kaiqiangRPC()//接收到别的窗口通知自己开枪了
+	{
+		StartCoroutine(this.kai_qiang1());
+
+	}
+
+	public void SetPosition(){		//子弹脚本调用这里通知你死亡了------------------
 		StartCoroutine(this.CreateBullet());
 		pv.RPC("FireRPC",PhotonTargets.Others);//通知别的窗口自己死亡了
-	
+
 	}
 
 	[PunRPC]
 	void FireRPC()//接收到别的窗口通知自己死亡了
 	{
+	
 		StartCoroutine(this.CreateBullet());
 	}
 	IEnumerator CreateBullet()	//死亡
@@ -127,4 +154,5 @@ public class EnemyControl : MonoBehaviour {
 		Destroy(gameObject,1.3f);
 		yield return null;
 	}
+
 }

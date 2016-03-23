@@ -19,7 +19,7 @@ public class GameManager : MonoBehaviour {
 		{
 			if (Time.time>createTime)
 			{
-				MakeEnemy();
+			MakeEnemy();
 				createTime = Time.time + 3.0f;
 			}
 		}	
