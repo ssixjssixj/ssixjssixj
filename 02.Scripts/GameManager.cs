@@ -26,7 +26,7 @@ public class GameManager : MonoBehaviour {
 	}
 	void MakeEnemy()
 	{
-		if(i<=3){
+		if(i<1){
 			i++;
 		StartCoroutine( this.CreateEnemy() );
 		}

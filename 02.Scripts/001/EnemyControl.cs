@@ -20,6 +20,7 @@ public class EnemyControl : MonoBehaviour {
 	private int ii=0;
 	void Start ()
 	{
+		
 		pos2=this.transform;//防御塔位置
 		pv = PhotonView.Get(this);
 		pv.observed = this;
@@ -31,7 +32,7 @@ public class EnemyControl : MonoBehaviour {
 		target = players[0].transform;
 		
 		currPos = tr.position;
-		
+
 		float dist = (target.position - tr.position).sqrMagnitude;//计算距离
 		foreach (GameObject _player in players)
 		{
@@ -57,6 +58,8 @@ public class EnemyControl : MonoBehaviour {
 				this.GetComponent<Animation> ().CrossFade ("riflerun");//跑
 				players = GameObject.FindGameObjectsWithTag("Player");
 				if(players==null || target==null){ return;}
+			
+//				print (target);
 				float dist = (target.position - tr.position).sqrMagnitude;
 				foreach (GameObject _player in players)
 				{
@@ -85,28 +88,37 @@ public class EnemyControl : MonoBehaviour {
 		}
 		else
 		{
+			
 			tr.position = Vector3.Lerp(tr.position, currPos, Time.deltaTime * 10.0f);//接收别的怪物移动
 			tr.rotation = Quaternion.Lerp(tr.rotation, currRot, Time.deltaTime * 10.0f);//接收别的怪物移动
-			this.GetComponent<Animation> ().CrossFade ("riflerun");//跑
+			//this.GetComponent<Animation> ().CrossFade ("riflerun");//跑
 
+
+			if (nvAgent.remainingDistance < 10.0f && target!=null) {
+				nvAgent.Stop (true);//停止寻路　　
+				this.GetComponent<Animation> ().CrossFade ("rifleidle");//站
+				pos2.LookAt (target.position);//转向寻路点
+							kai_qiang();
+			}
 		}
 	}
 	
 	//同步CALLBACK函数
 	void OnPhotonSerializeView(PhotonStream stream,PhotonMessageInfo info)
 	{
+				
 		if (stream.isWriting)
 		{
-		//	print ("hhhh111");
+	//		print ("hhhh111");
 			//自身角色给别的网络用户发送我的数据
 			stream.SendNext(tr.position);
 			stream.SendNext(tr.rotation);
-
+			if (!transform.GetComponent<Animation> ().isPlaying) {transform.GetComponent<Animation> ().Play ("riflerun");}	//播放动画
 
 		}
 		else
 		{
-			//		print ("hhhh2222");
+		//			print ("hhhh2222");
 			//接收其它角色数据
 			currPos = (Vector3)stream.ReceiveNext();
 			currRot = (Quaternion)stream.ReceiveNext();
